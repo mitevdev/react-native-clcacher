@@ -1,6 +1,9 @@
-import { mock, release } from 'mock-async-storage';
-mock();
-import Cache from './cache';
+import mockAsyncStorage from '@react-native-community/async-storage/jest/async-storage-mock';
+
+jest.mock('@react-native-community/async-storage', () => mockAsyncStorage);
+
+import MemoryCache from '../MemoryCache';
+
 const KEY = 'test_key_0';
 const KEY1 = 'test_key_1';
 const KEY2 = 'test_key_2';
@@ -8,9 +11,10 @@ const VAL = 5;
 const VAL1 = 7;
 const VAL2 = 9;
 
-
+const Cache = MemoryCache(mockAsyncStorage);
+console.log(Cache)
 describe('Cache', () => {
-    // jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000 * 5;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000 * 5;
 
     it('should *SET & GET* data in/from AsyncStorage', async () => {
         await Cache.set(KEY, VAL, 1);
