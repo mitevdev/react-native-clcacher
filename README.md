@@ -19,13 +19,13 @@ use following API:
 ## Installation
 
 ```
-npm install --save react-native-casher
+npm install --save react-native-cacher
 ```
 
 ## Usage
 
 ```
-const MemoryCache = require('react-native-casher/MemoryCache').default;
+const MemoryCache = require('react-native-cacher/MemoryCache').default;
 
 MemoryCache.set(url, headers, maxAge)
 ```
