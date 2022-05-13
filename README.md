@@ -25,7 +25,7 @@ npm install --save react-native-cacher
 ## Usage
 
 ```
-const MemoryCache = require('react-native-cacher/MemoryCache').default;
+const MemoryCache = require('react-native-cacher/MemoryCache');
 
 MemoryCache.set(url, headers, maxAge)
 ```

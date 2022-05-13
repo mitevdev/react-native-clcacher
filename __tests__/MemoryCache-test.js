@@ -1,6 +1,6 @@
-import mockAsyncStorage from '@react-native-community/async-storage/jest/async-storage-mock';
+import mockAsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 
-jest.mock('@react-native-community/async-storage', () => mockAsyncStorage);
+jest.mock('@react-native-async-storage/async-storage', () => mockAsyncStorage);
 
 import MemoryCache from '../MemoryCache';
 
@@ -11,7 +11,7 @@ const VAL = 5;
 const VAL1 = 7;
 const VAL2 = 9;
 
-const Cache = MemoryCache(mockAsyncStorage);
+const Cache = MemoryCache;
 console.log(Cache)
 describe('Cache', () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000 * 5;

@@ -1,33 +1,31 @@
 // import React, {Component} from 'react';
 import {Platform} from 'react-native';
-import {AsyncStorage} from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const PREFIX = 'react-native-cacher:values:';
 const DEFAULT_EXPIRES = 999999;
 
-module.exports = (asyncStorage = AsyncStorage) => {
-
-  function b64EncodeUnicode(str) {
+function b64EncodeUnicode(str) {
     if (Platform.OS === 'android') {
-          return encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function (match, p1) {
-              return String.fromCharCode('0x' + p1);
-          })
+        return encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function (match, p1) {
+            return String.fromCharCode('0x' + p1);
+        })
     }
     return str;
-  }
+}
 
-  function b64DecodeUnicode(str) {
+function b64DecodeUnicode(str) {
     if (Platform.OS === 'android'){
-       return decodeURIComponent(Array.prototype.map.call(str, function(c) {
-           return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-       }).join(''));
+        return decodeURIComponent(Array.prototype.map.call(str, function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
     }
     return str;
-  }
+}
 
-  function currentTime(){
+function currentTime(){
     return Math.floor((new Date().getTime() / 1000));
-  }
+}
 
   const MemoryCache = {
     set: async (key, value, expires = DEFAULT_EXPIRES) => {
@@ -38,7 +36,7 @@ module.exports = (asyncStorage = AsyncStorage) => {
       };
 
       try {
-          await asyncStorage.setItem(k, b64EncodeUnicode(JSON.stringify(storageValue)));
+          await AsyncStorage.setItem(k, b64EncodeUnicode(JSON.stringify(storageValue)));
           return null;
       } catch ( err ) {
           return {error: err};
@@ -51,14 +49,14 @@ module.exports = (asyncStorage = AsyncStorage) => {
       curTime = currentTime();
 
       try {
-          let v = await asyncStorage.getItem(k);
+          let v = await AsyncStorage.getItem(k);
 
-          v = v ? JSON.parse((Platform.OS == 'android') ?  b64DecodeUnicode(v) : v) : null;
+          v = v ? JSON.parse((Platform.OS === 'android') ?  b64DecodeUnicode(v) : v) : null;
 
           if ( v && v.expires && v.expires >= curTime ) {
               return v.value;
           } else {
-              await asyncStorage.removeItem(k);
+              await AsyncStorage.removeItem(k);
           }
       } catch ( err ) {
           return {error: err};
@@ -70,7 +68,7 @@ module.exports = (asyncStorage = AsyncStorage) => {
     remove: async (key) => {
       const k = PREFIX + key;
       try {
-          await asyncStorage.removeItem(k);
+          await AsyncStorage.removeItem(k);
           return null;
       } catch (err) {
           return {error: err};
@@ -78,17 +76,17 @@ module.exports = (asyncStorage = AsyncStorage) => {
     },
 
     multiGet: (keys) => {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
           let counter = 0, result = {};
           for ( let key of keys ) {
             MemoryCache.get(key).then((value) => {
                   result[key] = value;
-                  if ( ++counter == keys.length ) {
+                  if ( ++counter === keys.length ) {
                       resolve(result);
                   }
               }).catch(() => {
                   result[key] = null;
-                  if ( ++counter == keys.length ) {
+                  if ( ++counter === keys.length ) {
                       resolve(result);
                   }
               });
@@ -101,7 +99,7 @@ module.exports = (asyncStorage = AsyncStorage) => {
           let counter = 0, length = Object.keys(values).length;
           for ( let key in values ) {
             MemoryCache.set(key, values[key], expires).then(() => {
-                  if ( ++counter == length ) {
+                  if ( ++counter === length ) {
                       resolve(null);
                   }
               }).catch(err => reject({error: err}));
@@ -114,7 +112,7 @@ module.exports = (asyncStorage = AsyncStorage) => {
           let counter = 0;
           for ( let key of keys ) {
               MemoryCache.remove(key).then(() => {
-                  if ( ++counter == keys.length ) {
+                  if ( ++counter === keys.length ) {
                       resolve(null);
                   }
               }).catch(err => reject({error: err}));
@@ -136,8 +134,8 @@ module.exports = (asyncStorage = AsyncStorage) => {
       const k = PREFIX + key;
 
       try {
-          let v = await asyncStorage.getItem(k);
-          v = JSON.parse(v && (Platform.OS == 'android') ?  b64DecodeUnicode(v) : v);
+          let v = await AsyncStorage.getItem(k);
+          v = JSON.parse(v && (Platform.OS === 'android') ?  b64DecodeUnicode(v) : v);
           return ( ! v.expires ) || ( v.expires < currentTime());
       } catch ( err ) {
           return {error: err};
@@ -146,7 +144,7 @@ module.exports = (asyncStorage = AsyncStorage) => {
 
     getAllKeys: async () => {
       try {
-          let keys = await asyncStorage.getAllKeys();
+          let keys = await AsyncStorage.getAllKeys();
           let tmpKeys = [];
           for (let key of keys) {
               if (key.match(PREFIX) !== null) {
@@ -162,10 +160,9 @@ module.exports = (asyncStorage = AsyncStorage) => {
 
     getAllValues: () => MemoryCache.getAllKeys()
       .then((all) => all.reduce((prev, next) => {
-        asyncStorage.getItem(PREFIX + next).then(item => prev[next] = item);
+          AsyncStorage.getItem(PREFIX + next).then(item => prev[next] = item);
           return prev;
     }, {}))
   };
 
-  return MemoryCache;
-};
+module.exports = MemoryCache;
